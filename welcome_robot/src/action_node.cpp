@@ -341,6 +341,8 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& o) {
 void goal_to_reachCallback(const geometry_msgs::Point::ConstPtr& g) {
 // process the goal received from moving_persons detector
 
+ROS_INFO("(action_node) recieved callback");
+
     new_goal_to_reach = true;
     goal_to_reach = *g;
 

@@ -9,67 +9,29 @@ void datmo::update()
     // we wait for new data of the laser and of the robot_moving_node to perform laser processing
     if ( new_laser && new_robot ) 
     {
-        if (!static_background_stored) {
-            store_background();
-            static_background_stored = true;
-        }
 
         ROS_INFO("\n");
         ROS_INFO("New data of laser received");
         ROS_INFO("New data of robot_moving received");        
 
-        detect_motion();
-        display_motion();
-
-        perform_clustering();
-        display_clustering();
-
-        detect_legs();
-        display_legs();
-
-        detect_persons(); 
-        display_persons();
-
-        if(is_person_tracked){
-            track_a_person(); // process all the persons, even static
-            display_a_tracked_person();
-
-            ROS_INFO("===================TRACKING A PERSON=====================");     
-
-            if (frequency <= frequency_init || uncertainty >= uncertainty_max) { // lost the person
-                is_person_tracked = false;
-
-                geometry_msgs::Point person_lost;
-                person_lost.x = -100;
-                person_lost.y = -100;
-
-                pub_datmo.publish(person_lost);
-            }
-        } else if (!is_person_tracked || (!current_robot_moving && previous_robot_moving)) {
-            detect_a_moving_person();
-
-            frequency = frequency_init;
-            uncertainty = uncertainty_min;
-        }
-
-
-
         // if the robot is not moving then we can perform moving person detection
         if (!current_robot_moving)
-        {
-            ROS_INFO("robot is not moving");
-
+        {   
             // if the robot is not moving then we can perform moving person detection
             // DO NOT FORGET to store the background but when ???
+            ROS_INFO("robot is not moving");
+
             if (previous_robot_moving)
             {
-                store_background();
                 ROS_INFO("robot was moving");
+                datmo::store_background();
             }
             else
             {
                 ROS_INFO("robot was not moving");
             }
+            datmo::reset_motion();
+            datmo::detect_motion();
         }
         else
         {
@@ -86,12 +48,36 @@ void datmo::update()
                 ROS_INFO("robot was moving");
             }
         }
-        
-        
-// at first detection, if found - make tracking in place
+        display_motion();
 
-        reset_motion();
+        // clustering
+        // uncomment ONLY when you have implemented and tested the detection of motion
+        
+        perform_clustering(); // to perform clustering
+        display_clustering();
 
+        // detection of legs
+        // uncomment ONLY when you have implemented and tested the clustering
+        
+        detect_legs(); // to detect legs using cluster
+        display_legs();
+
+        // detection of persons
+        // uncomment ONLY when you have implemented and tested the detection of legs
+        detect_persons(); // to detect persons using legs detected
+        display_persons();
+
+        //TO COMPLETE
+        // When do we do detection and when do we do tracking ?
+        if(is_person_tracked) {
+            track_a_person();
+        }
+        else {
+            detect_a_moving_person();  
+        }
+
+        display_a_tracked_person();
+        /*do not change this part*/
         populateMarkerReference();
         new_laser = false;
         new_robot = false;

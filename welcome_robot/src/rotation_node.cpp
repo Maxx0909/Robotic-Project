@@ -58,7 +58,7 @@ rotation_node() {
     sub_odometry = n.subscribe("odom", 1, &rotation_node::odomCallback, this); // what here ?
 
     // communication with datmo
-    sub_goal_to_reach = n.subscribe("goal_to_reach", 1, &rotation_node::goal_to_reachCallback, this);
+    sub_goal_to_reach = n.subscribe("rotation_to_do", 1, &rotation_node::goal_to_reachCallback, this);
 
     new_goal_to_reach = false;
     init_odom = false;   
@@ -231,7 +231,8 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& o) {
 void goal_to_reachCallback(const geometry_msgs::Point::ConstPtr& g) {
 // process the goal received from moving_persons detector
 
-    ROS_INFO("(rotation_node) RECIEVED /goal_to_reach, x=%f, y=%f", g->x, g->y);
+    ROS_INFO("(rotation_node) RECIEVED /goal_to_reach, x=%f, y=%f\n", g->x, g->y);
+    //getchar();
 
     new_goal_to_reach = true;
     goal_to_reach = *g;
