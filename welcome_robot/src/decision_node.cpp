@@ -54,7 +54,6 @@ private:
     // communication with localization
     ros::Subscriber sub_localization;
 
-    // QUESTION!
     bool new_localization;
     bool init_localization;
     geometry_msgs::Point current_position;
@@ -303,7 +302,7 @@ void process_observing_the_person()
 
     
     // TO DO:
-    // QUESTION! TO COMPLETE:
+    // TO COMPLETE:
     // What should robair do if it loses the moving person ? 
     // (prior to this, you should think about what happens when datmo_node loses the person,
     //  in order to determine how this node can understand that the person has been lost. 
@@ -329,6 +328,7 @@ void process_rotating_to_the_person()
         //getchar();
         frequency = 0;
     }
+
     // Processing of the state
     // Robair rotates to be facing towards the moving person
     bool person_moved = distancePoints(person_position, previous_person_position) > detection_threshold;
@@ -338,14 +338,12 @@ void process_rotating_to_the_person()
     
     if ( new_person_position )
     {
-        //TO DO : if person move rotate ?????????????????????
         if (person_moved) {
             ROS_INFO("Person has moved : (%f, %f)", person_position.x, person_position.y);
 
             // TO COMPLETE:
             // Robair should rotate to face the person.
             
-            //TO DO : check if it works : change = 'pub_rotation_to_do' before was pub_goal_to_reach
             frequency = 0;
             ROS_INFO("Frequency back to 0");
             pub_rotation_to_do.publish(person_position);
@@ -370,9 +368,9 @@ void process_rotating_to_the_person()
         ROS_INFO("Person lost");
         ROS_INFO("pub_goal_to_reach to go back to the local_base_position and changing state to Waiting_for_a_person");
         pub_goal_to_reach.publish(local_base_position);
-        //TO DO: change state to resetting_orientation
-        current_state = EState::waiting_for_a_person;
+        current_state = EState::resetting_orientation;
     }
+    
     ROS_INFO("frequency : %d", frequency);
 
 }
@@ -407,7 +405,8 @@ void process_moving_to_the_person()
             //return;
         //}
 
-        //increment frequency because the person is not moving
+
+        //increment frequency
         frequency+=1;
 
         //TO COMPLETE
@@ -425,7 +424,7 @@ void process_moving_to_the_person()
             ROS_INFO("Person close to the robot");
             ROS_INFO("Changing state to interacting_with_the_person");
 
-// TO DO : publier un point à zero pour forcer l'arret du 
+            //publie un point à zero pour forcer l'arret du 
             pub_goal_to_reach.publish(0);
             current_state = EState::interacting_with_the_person;
 
@@ -466,22 +465,21 @@ void process_interacting_with_the_person()
         // TO COMPLETE:
         // if the person goes away from robair, after a while (use frequency), we switch to the state "rotating_to_the_base"
 
-        //testing the comment
-        if(person_lost){
-            person_moved=true; 
-            moved_away=true;
-        }
-        
-        if(person_moved && moved_away){
-            frequency+=1;
-            if(frequency>50){
-                current_state = EState::rotating_to_the_base;
-            }
-        }
-        else{
-            frequency=0;
-        }
+    }
 
+    if(person_lost){
+        person_moved=true; 
+        moved_away=true;
+    }
+        
+    if(person_moved && moved_away){
+        frequency+=1;
+        if(frequency>50){
+            current_state = EState::rotating_to_the_base;
+        }
+    }
+    else{
+        frequency=0;
     }
 }
 
