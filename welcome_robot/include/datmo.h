@@ -43,7 +43,7 @@
 
 //used for uncertainty associated to the tracked person
 #define uncertainty_min 0.5
-#define uncertainty_max 1
+#define uncertainty_max 1.0
 #define uncertainty_inc 0.05
 
 
