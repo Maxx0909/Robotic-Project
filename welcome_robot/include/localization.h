@@ -3,8 +3,8 @@
 #ifndef LOCALIZATION_H
 #define LOCALIZATION_H
 
-//localization using lidar data
-// written by O. Aycard
+// localization using lidar data
+//  written by O. Aycard
 
 #include "ros/ros.h"
 #include "ros/time.h"
@@ -23,7 +23,7 @@
 
 using namespace std;
 
-#define angle_resolution 5.0 //in degrees
+#define angle_resolution 5.0 // in degrees
 #define distance_to_travel 1.0
 #define angle_to_travel 20.0
 
@@ -48,7 +48,7 @@ private:
     geometry_msgs::Point current_scan[1000];
     bool valid[1000];
 
-    //to store the map
+    // to store the map
     nav_msgs::GetMap::Response resp;
     geometry_msgs::Point min, max;
     float cell_size;
@@ -66,66 +66,63 @@ private:
     geometry_msgs::Point odom_last;
     float odom_last_orientation;
 
-    //to store the initial_position of the mobile robot
+    // to store the initial_position of the mobile robot
     bool init_position;
     bool new_position;
     geometry_msgs::Point initial_position;
     float initial_orientation;
 
-    //to store the predicted and estimated position of the mobile robot
+    // to store the predicted and estimated position of the mobile robot
     bool localization_initialized;
     geometry_msgs::Point predicted_position;
     float predicted_orientation;
     geometry_msgs::Point estimated_position;
     float estimated_orientation;
     int score_max;
-    
+
     float distance_traveled;
     float previous_distance_traveled;
     float angle_traveled;
     float previous_angle_traveled;
 
-    //to store the hits of the laser in the frame of the map
+    // to store the hits of the laser in the frame of the map
     geometry_msgs::Point hit[1000];
     bool cell_occupied[1000];
 
 public:
+    localization();
 
-localization();
+    // UPDATE: main processing of laser data
+    /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+    void update();
 
-//UPDATE: main processing of laser data
-/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-void update(); 
+    void initialize_localization();
+    void predict_position();
+    void estimate_position();
+    void find_best_position(float min_x, float max_x, float min_y, float max_y, float min_orientation, float max_orientation);
+    int sensor_model(float x, float y, float o);
+    int cell_value(float x, float y);
 
-void initialize_localization(); 
-void predict_position(); 
-void estimate_position(); 
-void find_best_position(float min_x, float max_x, float min_y, float max_y, float min_orientation, float max_orientation); 
-int sensor_model(float x, float y, float o);
-int cell_value(float x, float y);
+    // Distance between two points
+    float distancePoints(geometry_msgs::Point pa, geometry_msgs::Point pb);
 
-// Distance between two points
-float distancePoints(geometry_msgs::Point pa, geometry_msgs::Point pb);
+    void broadcast_current_position();
 
+    // CALLBACK
+    /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+    void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan);
+    void odomCallback(const nav_msgs::Odometry::ConstPtr &o);
+    void positionCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &p);
 
-void broadcast_current_position();
-
-//CALLBACK
-/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
-void odomCallback(const nav_msgs::Odometry::ConstPtr& o);
-void positionCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& p);
-
-// GRAPHICAL DISPLAY
-/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-// Draw the field of view and other references
+    // GRAPHICAL DISPLAY
+    /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+    // Draw the field of view and other references
     void reset_display();
     void display_localization(geometry_msgs::Point position, float orientation);
     void display_markers();
-
 };
 
 #endif

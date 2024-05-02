@@ -18,17 +18,16 @@
 #include "message_filters/subscriber.h"
 #include "tf/message_filter.h"
 
-
 int nb_static = 5;
 
 using namespace std;
 
-class robot_moving_node {
+class robot_moving_node
+{
 private:
-
     ros::NodeHandle n;
 
-     // communication with person_detector
+    // communication with person_detector
     ros::Publisher pub_robot_moving;
 
     // communication with odometry
@@ -38,80 +37,85 @@ private:
     float orientation, not_moving_orientation;
     int count;
     bool moving;
-    bool new_odom;//to check if new data of odometry is available or not
+    bool new_odom; // to check if new data of odometry is available or not
 
 public:
+    robot_moving_node()
+    {
 
-robot_moving_node() {
+        // communication with person_detector
+        pub_robot_moving = n.advertise<std_msgs::Bool>("robot_moving", 1);
 
-    // communication with person_detector
-    pub_robot_moving = n.advertise<std_msgs::Bool>("robot_moving", 1);   
+        // communication with odometry
+        sub_odometry = n.subscribe("odom", 1, &robot_moving_node::odomCallback, this);
 
-    // communication with odometry
-    sub_odometry = n.subscribe("odom", 1, &robot_moving_node::odomCallback, this);
-
-    moving = 1;
-    count = 0;
-    not_moving_position.x = 0;
-    not_moving_position.y = 0;
-    not_moving_orientation = 0;
-    new_odom = false;
-
-    ros::Rate r(10);//this node is updated at 20hz
-
-    while (ros::ok()) {
-        ros::spinOnce();
-        update();
-        r.sleep();
-    }
-
-}//robot_moving_node
-
-void odomCallback(const nav_msgs::Odometry::ConstPtr& o) {
-
-    new_odom = true;
-    position.x = o->pose.pose.position.x;
-    position.y = o->pose.pose.position.y;
-    orientation = tf::getYaw(o->pose.pose.orientation);
-
-}//odomCallback
-
-void update() {
-
-    if ( new_odom )
-    {//we wait for new data of odometry
+        moving = 1;
+        count = 0;
+        not_moving_position.x = 0;
+        not_moving_position.y = 0;
+        not_moving_orientation = 0;
         new_odom = false;
-        if ( ( not_moving_position.x == position.x ) && ( not_moving_position.y == position.y ) && ( not_moving_orientation == orientation ) )
+
+        ros::Rate r(10); // this node is updated at 20hz
+
+        while (ros::ok())
         {
-            count++;
-            if ( ( count == nb_static ) && ( moving ) ) {
-                ROS_INFO("robot is not moving");
-                moving = false;
-            }
+            ros::spinOnce();
+            update();
+            r.sleep();
         }
-        else {
-            not_moving_position.x = position.x;
-            not_moving_position.y = position.y;
-            not_moving_orientation = orientation;
-            count = 0;
-            if ( !moving )
+
+    } // robot_moving_node
+
+    void odomCallback(const nav_msgs::Odometry::ConstPtr &o)
+    {
+
+        new_odom = true;
+        position.x = o->pose.pose.position.x;
+        position.y = o->pose.pose.position.y;
+        orientation = tf::getYaw(o->pose.pose.orientation);
+
+    } // odomCallback
+
+    void update()
+    {
+
+        if (new_odom)
+        { // we wait for new data of odometry
+            new_odom = false;
+            if ((not_moving_position.x == position.x) && (not_moving_position.y == position.y) && (not_moving_orientation == orientation))
             {
-                ROS_INFO("robot is moving");
-                moving = true;
+                count++;
+                if ((count == nb_static) && (moving))
+                {
+                    ROS_INFO("robot is not moving");
+                    moving = false;
+                }
             }
+            else
+            {
+                not_moving_position.x = position.x;
+                not_moving_position.y = position.y;
+                not_moving_orientation = orientation;
+                count = 0;
+                if (!moving)
+                {
+                    ROS_INFO("robot is moving");
+                    moving = true;
+                }
+            }
+
+            std_msgs::Bool robot_moving_msg;
+            robot_moving_msg.data = moving;
+
+            pub_robot_moving.publish(robot_moving_msg);
         }
 
-        std_msgs::Bool robot_moving_msg;
-        robot_moving_msg.data = moving;
-
-        pub_robot_moving.publish(robot_moving_msg);
-    }
-
-}//update
-
+    } // update
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
     ros::init(argc, argv, "robot_moving_node");
     ros::NodeHandle n;
@@ -122,7 +126,4 @@ int main(int argc, char **argv) {
     ros::spin();
 
     return 0;
-
 }
-
-

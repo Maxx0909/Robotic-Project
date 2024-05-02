@@ -70,7 +70,7 @@ void localization::initialize_localization()
     max_x = initial_position.x + distance_to_travel;
     max_y = initial_position.y + distance_to_travel;
 
-    //we search the position with the highest sensor_model in a square of 2x2 meters around the initial_position and with all possible orientations  
+    // we search the position with the highest sensor_model in a square of 2x2 meters around the initial_position and with all possible orientations
     ROS_INFO("possible positions to tests: (%f, %f) -> (%f, %f)", min_x, min_y, max_x, max_y);
     find_best_position(min_x, max_x, min_y, max_y, -M_PI, M_PI);
 
@@ -116,7 +116,7 @@ void localization::estimate_position()
     display_markers();
     // ROS_INFO("press enter to continue");
     // getchar();
-    
+
     float min_x, max_x, min_y, max_y, min_orientation, max_orientation;
 
     min_x = predicted_position.x - 0.5;
@@ -125,10 +125,10 @@ void localization::estimate_position()
     min_y = predicted_position.y - 0.5;
     max_y = predicted_position.y + 0.5;
 
-    min_orientation =  predicted_orientation -M_PI/6;
-    max_orientation = predicted_orientation + M_PI/6;
+    min_orientation = predicted_orientation - M_PI / 6;
+    max_orientation = predicted_orientation + M_PI / 6;
 
-    //we search the position with the highest sensor_model in a square of 1x1 meter around the predicted_position and with orientations around the predicted_orientation -M_PI/6 and +M_PI/6
+    // we search the position with the highest sensor_model in a square of 1x1 meter around the predicted_position and with orientations around the predicted_orientation -M_PI/6 and +M_PI/6
     ROS_INFO("possible positions to tests: (%f, %f, %f) -> (%f, %f, %f)", min_x, min_y, min_orientation, max_x, max_y, max_orientation);
     ROS_WARN("have you initialized min_x, max_x, min_y, max_y, min_orientation, max_orientation ?");
     find_best_position(min_x, max_x, min_y, max_y, min_orientation, max_orientation);
@@ -138,7 +138,8 @@ void localization::estimate_position()
     ROS_INFO("estimate_position done");
 }
 
-void localization::broadcast_current_position() {
+void localization::broadcast_current_position()
+{
     pub_localization.publish(estimated_position);
 }
 
@@ -151,22 +152,26 @@ void localization::find_best_position(float min_x, float max_x, float min_y, flo
 
     int best_score = -1;
 
-    for (float loopX = min_x; loopX < max_x; loopX += 0.05) {
-        for (float loopY = min_y; loopY < max_y; loopY += 0.05) {
+    for (float loopX = min_x; loopX < max_x; loopX += 0.05)
+    {
+        for (float loopY = min_y; loopY < max_y; loopY += 0.05)
+        {
 
             int cellValue = cell_value(loopX, loopY);
 
-            if (cell_value(loopX, loopY)) {
+            if (cell_value(loopX, loopY))
+            {
                 continue;
             }
 
-            for (float loopTheta = min_orientation; loopTheta < max_orientation; loopTheta += M_PI / 36) {
+            for (float loopTheta = min_orientation; loopTheta < max_orientation; loopTheta += M_PI / 36)
+            {
                 int score_current = sensor_model(loopX, loopY, loopTheta);
 
-                ROS_INFO("(%f, %f, %f): score = %i", loopX, loopY, loopTheta*180/M_PI, score_current);
+                ROS_INFO("(%f, %f, %f): score = %i", loopX, loopY, loopTheta * 180 / M_PI, score_current);
 
-                if (score_current > best_score) {
-
+                if (score_current > best_score)
+                {
 
                     best_score = score_current;
                     geometry_msgs::Point p;
@@ -183,10 +188,9 @@ void localization::find_best_position(float min_x, float max_x, float min_y, flo
                     // ROS_INFO("press enter to continue");
                     // getchar();
                 }
-
             }
         }
-    } 
+    }
 
     ROS_INFO("best_position found");
     ROS_INFO(" BEST POSITION FOUND (%f, %f, %f): score = %i", estimated_position.x, estimated_position.y, estimated_orientation, best_score);
@@ -204,7 +208,8 @@ int localization::sensor_model(float x, float y, float o)
     {
 
         hit[loop].x = x + r[loop] * cos(o + theta[loop]);
-        hit[loop].y = y + r[loop] * sin(o + theta[loop]);;
+        hit[loop].y = y + r[loop] * sin(o + theta[loop]);
+        ;
 
         cell_occupied[loop] = false;
         for (float loop_x = hit[loop].x - uncertainty; loop_x <= hit[loop].x + uncertainty; loop_x += uncertainty)
